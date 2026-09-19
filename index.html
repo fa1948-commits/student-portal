@@ -339,19 +339,51 @@
     return 'g' + (nextId++);
   }
 
+  // fetch() بيتعطل مع Apps Script بسبب CORS، فبنستخدم أسلوب JSONP (تحميل عن طريق تاج <script>) بدالها
+  var jsonpCounter = 0;
+  function jsonpRequest(params, callback){
+    var cbName = '__jsonpCb' + (jsonpCounter++);
+    var finished = false;
+    function cleanup(){
+      delete window[cbName];
+      if(script.parentNode){ script.parentNode.removeChild(script); }
+      clearTimeout(timer);
+    }
+    window[cbName] = function(data){
+      finished = true;
+      cleanup();
+      callback(null, data);
+    };
+    var query = Object.keys(params).map(function(k){
+      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }).join('&');
+    var script = document.createElement('script');
+    script.src = APPS_SCRIPT_URL + '?' + query + '&callback=' + cbName;
+    script.onerror = function(){
+      if(finished) return;
+      cleanup();
+      callback(new Error('load error'));
+    };
+    var timer = setTimeout(function(){
+      if(finished) return;
+      cleanup();
+      callback(new Error('timeout'));
+    }, 10000);
+    document.body.appendChild(script);
+  }
+
   function loadGroups(){
     grid.innerHTML = '<p class="empty">بيتم تحميل الفرق...</p>';
-    fetch(APPS_SCRIPT_URL + '?action=list')
-      .then(function(res){ return res.json(); })
-      .then(function(data){
-        GROUPS = (data.groups || []).map(function(name){
-          return { id: idFor(name), name: name, link: '' };
-        });
-        render('');
-      })
-      .catch(function(){
+    jsonpRequest({action:'list'}, function(reqErr, data){
+      if(reqErr || !data){
         grid.innerHTML = '<p class="empty">مفيش اتصال بالسيرفر دلوقتي. جرّب تحدّث الصفحة.</p>';
+        return;
+      }
+      GROUPS = (data.groups || []).map(function(name){
+        return { id: idFor(name), name: name, link: '' };
       });
+      render('');
+    });
   }
 
   function escapeHtml(str){
@@ -439,29 +471,20 @@
       btn.disabled = true;
       var originalLabel = btn.textContent;
       btn.textContent = 'جاري التحقق...';
-      var url = APPS_SCRIPT_URL + '?action=unlock&name=' + encodeURIComponent(g.name) + '&password=' + encodeURIComponent(input.value);
-      fetch(url)
-        .then(function(res){ return res.json(); })
-        .then(function(data){
-          if(data && data.ok){
-            g.link = data.link || '';
-            unlocked[g.id] = true;
-            render(searchInput.value);
-          }else{
-            btn.disabled = false;
-            btn.textContent = originalLabel;
-            err.textContent = 'كلمة السر غلط، جرّب تاني';
-            err.hidden = false;
-            card.classList.add('shake');
-            setTimeout(function(){ card.classList.remove('shake'); }, 400);
-          }
-        })
-        .catch(function(){
-          btn.disabled = false;
-          btn.textContent = originalLabel;
-          err.textContent = 'مفيش اتصال بالسيرفر، جرّب تاني';
+      jsonpRequest({action:'unlock', name:g.name, password:input.value}, function(reqErr, data){
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+        if(!reqErr && data && data.ok){
+          g.link = data.link || '';
+          unlocked[g.id] = true;
+          render(searchInput.value);
+        }else{
+          err.textContent = reqErr ? 'مفيش اتصال بالسيرفر، جرّب تاني' : 'كلمة السر غلط، جرّب تاني';
           err.hidden = false;
-        });
+          card.classList.add('shake');
+          setTimeout(function(){ card.classList.remove('shake'); }, 400);
+        }
+      });
     }
 
     if(btn){ btn.addEventListener('click', tryEnter); }
