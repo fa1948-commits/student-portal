@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>بوابة ملفات الطلاب</title>
+<meta name="description" content="بوابة ملفات الطلاب — اختر فرقتك وادخل بكلمة السر عشان تشوف ملفاتك">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400..700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3ECD9;
+    --surface:#FFFFFF;
+    --surface-2:#FBF6E8;
+    --ink:#1F3B32;
+    --ink-soft:#5B6B63;
+    --accent:#C98A2B;
+    --accent-ink:#3B2A06;
+    --line:#E3D8BA;
+    --danger:#B3402C;
+    --focus:#1F3B32;
+
+    --hero-bg:#1F3B32;
+    --hero-bg-2:#182F27;
+    --hero-ink:#F5F1E6;
+    --hero-ink-soft:#BFD2C6;
+    --hero-accent:#D9A441;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#141F1A;
+      --surface:#1D2C25;
+      --surface-2:#22342B;
+      --ink:#F1ECDD;
+      --ink-soft:#9FB3A7;
+      --accent:#D9A441;
+      --accent-ink:#2B1D00;
+      --line:#2C4238;
+      --danger:#E28A73;
+      --focus:#D9A441;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141F1A;
+    --surface:#1D2C25;
+    --surface-2:#22342B;
+    --ink:#F1ECDD;
+    --ink-soft:#9FB3A7;
+    --accent:#D9A441;
+    --accent-ink:#2B1D00;
+    --line:#2C4238;
+    --danger:#E28A73;
+    --focus:#D9A441;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans Arabic', Tahoma, 'Segoe UI', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,.brand{font-family:'Reem Kufi', Tahoma, sans-serif;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  :focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:4px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background-color:var(--hero-bg);
+    background-image:
+      radial-gradient(ellipse 70% 50% at 18% -10%, rgba(217,164,65,0.16), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(255,255,255,0.05), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    color:var(--hero-ink);
+    padding:3.6rem 1.25rem 3rem;
+  }
+  .hero-inner{
+    max-width:52rem;
+    margin:0 auto;
+    text-align:center;
+  }
+  .hero h1{
+    margin:0 0 .6rem;
+    font-weight:700;
+    font-size:clamp(2rem, 5.4vw, 3rem);
+    letter-spacing:.01em;
+  }
+  .hero .tagline{
+    margin:0 auto 2rem;
+    max-width:34rem;
+    color:var(--hero-ink-soft);
+    font-size:1.05rem;
+  }
+  .search-wrap{
+    position:relative;
+    max-width:24rem;
+    margin:0 auto;
+  }
+  .search-wrap svg{
+    position:absolute;
+    inset-inline-start:.9rem;
+    top:50%;
+    transform:translateY(-50%);
+    width:1.05rem;height:1.05rem;
+    color:var(--hero-ink-soft);
+    pointer-events:none;
+  }
+  #search{
+    width:100%;
+    padding:.85rem 1rem .85rem 1rem;
+    padding-inline-start:2.6rem;
+    border-radius:999px;
+    border:1px solid rgba(245,241,230,0.22);
+    background:rgba(255,255,255,0.07);
+    color:var(--hero-ink);
+    font-size:.98rem;
+  }
+  #search::placeholder{color:var(--hero-ink-soft);}
+  #search:focus-visible{outline:2px solid var(--hero-accent);outline-offset:2px;}
+
+  /* ---------- Main / grid ---------- */
+  main{
+    max-width:56rem;
+    margin:0 auto;
+    padding:2.25rem 1.25rem 4rem;
+  }
+  .groups-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:.85rem;
+  }
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    color:var(--ink-soft);
+    padding:2rem 1rem;
+  }
+  .card{
+    grid-column:span 1;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(6px);
+    animation:settle .38s ease forwards;
+  }
+  .card:nth-child(1){animation-delay:.02s}
+  .card:nth-child(2){animation-delay:.06s}
+  .card:nth-child(3){animation-delay:.1s}
+  .card:nth-child(4){animation-delay:.14s}
+  .card:nth-child(5){animation-delay:.18s}
+  .card:nth-child(6){animation-delay:.22s}
+  .card:nth-child(7){animation-delay:.26s}
+  .card:nth-child(8){animation-delay:.3s}
+  .card:nth-child(9){animation-delay:.34s}
+  .card:nth-child(10){animation-delay:.38s}
+  .card:nth-child(11){animation-delay:.42s}
+  .card:nth-child(12){animation-delay:.46s}
+  @keyframes settle{to{opacity:1;transform:translateY(0);}}
+
+  .card.active{
+    grid-column:1/-1;
+    background:var(--surface-2);
+    border-color:var(--accent);
+  }
+  .card-head{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+    padding:.95rem 1.05rem;
+    background:none;
+    border:0;
+    cursor:pointer;
+    text-align:start;
+    color:var(--ink);
+  }
+  .status-dot{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:1.6rem;height:1.6rem;
+    border-radius:50%;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    flex:none;
+  }
+  .status-dot.unlocked{
+    color:var(--accent-ink);
+    background:var(--accent);
+    border-color:var(--accent);
+  }
+  .status-dot svg{width:.85rem;height:.85rem;}
+  .card-name{
+    font-family:'Reem Kufi', Tahoma, sans-serif;
+    font-size:1.02rem;
+    font-weight:600;
+  }
+
+  .card-body{
+    padding:0 1.05rem 1.15rem;
+  }
+  .pw-row{
+    display:flex;
+    gap:.5rem;
+    margin-bottom:.65rem;
+  }
+  .pw-row input{
+    flex:1;
+    padding:.7rem .9rem;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:.98rem;
+  }
+  .pw-toggle{
+    width:2.6rem;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pw-toggle svg{width:1.05rem;height:1.05rem;}
+  .btn-enter{
+    padding:.65rem 1.4rem;
+    border-radius:8px;
+    border:0;
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-weight:600;
+    cursor:pointer;
+    font-size:.95rem;
+  }
+  .error{
+    margin:.6rem 0 0;
+    color:var(--danger);
+    font-size:.9rem;
+  }
+  .unlocked-body{padding-top:.15rem;}
+  .unlocked-msg{
+    margin:0 0 .8rem;
+    color:var(--ink-soft);
+    font-size:.95rem;
+  }
+  .btn-open{
+    display:inline-block;
+    padding:.7rem 1.5rem;
+    border-radius:8px;
+    background:var(--accent);
+    color:var(--accent-ink);
+    text-decoration:none;
+    font-weight:600;
+    font-size:.95rem;
+  }
+  .empty-note{
+    margin:0;
+    padding:.85rem 1rem;
+    border:1px dashed var(--line);
+    border-radius:8px;
+    color:var(--ink-soft);
+    font-size:.9rem;
+  }
+  .card.shake{animation:shake .35s;}
+  @keyframes shake{
+    10%,90%{transform:translateX(-2px)}
+    20%,80%{transform:translateX(3px)}
+    30%,50%,70%{transform:translateX(-5px)}
+    40%,60%{transform:translateX(5px)}
+  }
+
+  footer{
+    text-align:center;
+    padding:1.5rem 1rem 2.5rem;
+    color:var(--ink-soft);
+    font-size:.82rem;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+    .card{opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1>بوابة ملفات الطلاب</h1>
+    <p class="tagline">اختر فرقتك، ادخل كلمة السر، وشوف ملفاتك</p>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <label class="sr-only" for="search">دوّر على فرقتك</label>
+      <input id="search" type="text" placeholder="دوّر على فرقتك..." autocomplete="off">
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="groups-grid" id="groupsGrid" role="list"></div>
+</main>
+
+<footer>
+  <p>© <span id="year"></span></p>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var LOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  var CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 9 17 20 6"/></svg>';
+  var EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+
+  // عدّل هنا: اسم كل فرقة، كلمة السر، ورابط ملفات جوجل درايف (لو موجود)
+  var GROUPS = [
+    {id:'g1',  name:'الفرقة ١',  password:'0001', link:''},
+    {id:'g2',  name:'الفرقة ٢',  password:'0002', link:''},
+    {id:'g3',  name:'الفرقة ٣',  password:'0003', link:''},
+    {id:'g4',  name:'الفرقة ٤',  password:'0004', link:''},
+    {id:'g5',  name:'الفرقة ٥',  password:'0005', link:''},
+    {id:'g6',  name:'الفرقة ٦',  password:'0006', link:''},
+    {id:'g7',  name:'الفرقة ٧',  password:'0007', link:''},
+    {id:'g8',  name:'الفرقة ٨',  password:'0008', link:''},
+    {id:'g9',  name:'الفرقة ٩',  password:'0009', link:''},
+    {id:'g10', name:'الفرقة ١٠', password:'0010', link:''},
+    {id:'g11', name:'الفرقة ١١', password:'0011', link:''},
+    {id:'g12', name:'الفرقة ١٢', password:'0012', link:''}
+  ];
+
+  var grid = document.getElementById('groupsGrid');
+  var searchInput = document.getElementById('search');
+  var activeId = null;
+  var unlocked = {};
+
+  try{
+    var saved = sessionStorage.getItem('unlockedGroups');
+    if(saved){ JSON.parse(saved).forEach(function(id){ unlocked[id] = true; }); }
+  }catch(e){}
+
+  function saveUnlocked(){
+    try{ sessionStorage.setItem('unlockedGroups', JSON.stringify(Object.keys(unlocked))); }catch(e){}
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function driveLikeUrl(url){
+    return /^https:\/\//.test(url);
+  }
+
+  function cardBody(g){
+    if(unlocked[g.id]){
+      var openBtn = (g.link && driveLikeUrl(g.link))
+        ? '<a class="btn-open" href="' + escapeHtml(g.link) + '" target="_blank" rel="noopener noreferrer">افتح ملفات الفرقة</a>'
+        : '<p class="empty-note">لسه مفيش ملفات هنا — تابع الصفحة دي كل شوية.</p>';
+      return '<div class="card-body unlocked-body">' +
+               '<p class="unlocked-msg">تم الدخول &#10003;</p>' +
+               openBtn +
+             '</div>';
+    }
+    return '<div class="card-body">' +
+             '<label class="sr-only" for="pw-' + g.id + '">كلمة السر لـ ' + escapeHtml(g.name) + '</label>' +
+             '<div class="pw-row">' +
+               '<input id="pw-' + g.id + '" type="password" autocomplete="off" placeholder="اكتب كلمة السر">' +
+               '<button type="button" class="pw-toggle" aria-label="اظهار كلمة السر">' + EYE_ICON + '</button>' +
+             '</div>' +
+             '<button type="button" class="btn-enter">دخول</button>' +
+             '<p class="error" aria-live="polite" hidden></p>' +
+           '</div>';
+  }
+
+  function render(filter){
+    var q = (filter || '').trim();
+    var list = GROUPS.filter(function(g){ return g.name.indexOf(q) !== -1 || q === ''; });
+    grid.innerHTML = '';
+
+    if(list.length === 0){
+      grid.innerHTML = '<p class="empty">مفيش فرقة بالاسم ده. جرّب تدور بشكل تاني.</p>';
+      return;
+    }
+
+    list.forEach(function(g){
+      var card = document.createElement('div');
+      card.className = 'card' + (activeId === g.id ? ' active' : '');
+      card.setAttribute('role', 'listitem');
+
+      var isActive = activeId === g.id;
+      card.innerHTML =
+        '<button type="button" class="card-head" aria-expanded="' + isActive + '">' +
+          '<span class="status-dot' + (unlocked[g.id] ? ' unlocked' : '') + '">' + (unlocked[g.id] ? CHECK_ICON : LOCK_ICON) + '</span>' +
+          '<span class="card-name">' + escapeHtml(g.name) + '</span>' +
+        '</button>' +
+        (isActive ? cardBody(g) : '');
+
+      card.querySelector('.card-head').addEventListener('click', function(){
+        activeId = (activeId === g.id) ? null : g.id;
+        render(searchInput.value);
+      });
+
+      grid.appendChild(card);
+    });
+
+    if(activeId){
+      wireActiveCard();
+    }
+  }
+
+  function wireActiveCard(){
+    var card = grid.querySelector('.card.active');
+    if(!card) return;
+    var g = GROUPS.filter(function(x){ return x.id === activeId; })[0];
+    if(!g || unlocked[g.id]) return;
+
+    var input = card.querySelector('input[type="password"]');
+    var btn = card.querySelector('.btn-enter');
+    var err = card.querySelector('.error');
+    var toggle = card.querySelector('.pw-toggle');
+
+    if(input){ input.focus(); }
+
+    function tryEnter(){
+      if(input.value === g.password){
+        unlocked[g.id] = true;
+        saveUnlocked();
+        render(searchInput.value);
+      }else{
+        err.textContent = 'كلمة السر غلط، جرّب تاني';
+        err.hidden = false;
+        card.classList.add('shake');
+        setTimeout(function(){ card.classList.remove('shake'); }, 400);
+      }
+    }
+
+    if(btn){ btn.addEventListener('click', tryEnter); }
+    if(input){
+      input.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); tryEnter(); }
+      });
+    }
+    if(toggle){
+      toggle.addEventListener('click', function(){
+        input.type = (input.type === 'password') ? 'text' : 'password';
+      });
+    }
+  }
+
+  searchInput.addEventListener('input', function(){ render(searchInput.value); });
+
+  var yearEl = document.getElementById('year');
+  if(yearEl){ yearEl.textContent = new Date().getFullYear(); }
+
+  render('');
+})();
+</script>
+</body>
+</html>
