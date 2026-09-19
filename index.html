@@ -92,7 +92,6 @@
     margin:0 0 .6rem;
     font-weight:700;
     font-size:clamp(2rem, 5.4vw, 3rem);
-    letter-spacing:.01em;
   }
   .hero .tagline{
     margin:0 auto 2rem;
@@ -324,34 +323,35 @@
   var CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 9 17 20 6"/></svg>';
   var EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
 
-  // عدّل هنا: اسم كل فرقة، كلمة السر، ورابط ملفات جوجل درايف (لو موجود)
-  var GROUPS = [
-    {id:'g1',  name:'الفرقة ١',  password:'0001', link:''},
-    {id:'g2',  name:'الفرقة ٢',  password:'0002', link:''},
-    {id:'g3',  name:'الفرقة ٣',  password:'0003', link:''},
-    {id:'g4',  name:'الفرقة ٤',  password:'0004', link:''},
-    {id:'g5',  name:'الفرقة ٥',  password:'0005', link:''},
-    {id:'g6',  name:'الفرقة ٦',  password:'0006', link:''},
-    {id:'g7',  name:'الفرقة ٧',  password:'0007', link:''},
-    {id:'g8',  name:'الفرقة ٨',  password:'0008', link:''},
-    {id:'g9',  name:'الفرقة ٩',  password:'0009', link:''},
-    {id:'g10', name:'الفرقة ١٠', password:'0010', link:''},
-    {id:'g11', name:'الفرقة ١١', password:'0011', link:''},
-    {id:'g12', name:'الفرقة ١٢', password:'0012', link:''}
-  ];
+  // رابط تطبيق Google Apps Script (السيرفر اللي بيتحقق من كلمة السر ويدي الرابط)
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdrxxS5GU-IGZ53J73SESMVwA-9diLCIC_KS8opgEoCyS2BWBVFwzJef9muyzqO5k-/exec';
 
   var grid = document.getElementById('groupsGrid');
   var searchInput = document.getElementById('search');
   var activeId = null;
   var unlocked = {};
+  var GROUPS = []; // هتتملى تلقائي من الجدول (Google Sheet) بعد التحميل
+  var nextId = 1;
 
-  try{
-    var saved = sessionStorage.getItem('unlockedGroups');
-    if(saved){ JSON.parse(saved).forEach(function(id){ unlocked[id] = true; }); }
-  }catch(e){}
+  function idFor(name){
+    var found = GROUPS.filter(function(g){ return g.name === name; })[0];
+    if(found) return found.id;
+    return 'g' + (nextId++);
+  }
 
-  function saveUnlocked(){
-    try{ sessionStorage.setItem('unlockedGroups', JSON.stringify(Object.keys(unlocked))); }catch(e){}
+  function loadGroups(){
+    grid.innerHTML = '<p class="empty">بيتم تحميل الفرق...</p>';
+    fetch(APPS_SCRIPT_URL + '?action=list')
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        GROUPS = (data.groups || []).map(function(name){
+          return { id: idFor(name), name: name, link: '' };
+        });
+        render('');
+      })
+      .catch(function(){
+        grid.innerHTML = '<p class="empty">مفيش اتصال بالسيرفر دلوقتي. جرّب تحدّث الصفحة.</p>';
+      });
   }
 
   function escapeHtml(str){
@@ -435,16 +435,33 @@
     if(input){ input.focus(); }
 
     function tryEnter(){
-      if(input.value === g.password){
-        unlocked[g.id] = true;
-        saveUnlocked();
-        render(searchInput.value);
-      }else{
-        err.textContent = 'كلمة السر غلط، جرّب تاني';
-        err.hidden = false;
-        card.classList.add('shake');
-        setTimeout(function(){ card.classList.remove('shake'); }, 400);
-      }
+      if(!input.value){ return; }
+      btn.disabled = true;
+      var originalLabel = btn.textContent;
+      btn.textContent = 'جاري التحقق...';
+      var url = APPS_SCRIPT_URL + '?action=unlock&name=' + encodeURIComponent(g.name) + '&password=' + encodeURIComponent(input.value);
+      fetch(url)
+        .then(function(res){ return res.json(); })
+        .then(function(data){
+          if(data && data.ok){
+            g.link = data.link || '';
+            unlocked[g.id] = true;
+            render(searchInput.value);
+          }else{
+            btn.disabled = false;
+            btn.textContent = originalLabel;
+            err.textContent = 'كلمة السر غلط، جرّب تاني';
+            err.hidden = false;
+            card.classList.add('shake');
+            setTimeout(function(){ card.classList.remove('shake'); }, 400);
+          }
+        })
+        .catch(function(){
+          btn.disabled = false;
+          btn.textContent = originalLabel;
+          err.textContent = 'مفيش اتصال بالسيرفر، جرّب تاني';
+          err.hidden = false;
+        });
     }
 
     if(btn){ btn.addEventListener('click', tryEnter); }
@@ -465,7 +482,7 @@
   var yearEl = document.getElementById('year');
   if(yearEl){ yearEl.textContent = new Date().getFullYear(); }
 
-  render('');
+  loadGroups();
 })();
 </script>
 </body>
